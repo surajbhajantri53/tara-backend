@@ -41,7 +41,7 @@ def hf_infer(question: str):
     """
     try:
         # Use direct API endpoint instead of router
-        url = f"https://api-inference.huggingface.co/models/Surajsb/STS"
+        url = f"https://router.huggingface.co/models/Surajsb/STS"
         
         headers = {
             "Authorization": f"Bearer {HF_API_TOKEN}",
