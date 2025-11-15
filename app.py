@@ -12,7 +12,7 @@ import urllib3
 # ===============================
 # CONFIG
 # ===============================
-HF_MODEL_ID = "Surajsb/STS"
+#HF_MODEL_ID = "Surajsb/STS"
 HF_API_TOKEN = os.getenv("HF_API_TOKEN")
    # <-- PUT TOKEN HERE
 
@@ -36,29 +36,70 @@ ssl._create_default_https_context = ssl._create_unverified_context
 # HUGGINGFACE API INFERENCE
 # ===============================
 def hf_infer(question: str):
+    """
+    Improved HF inference with better error handling
+    """
     try:
+        # Use direct API endpoint instead of router
+        url = f"https://api-inference.huggingface.co/models/Surajsb/STS"
+        
+        headers = {
+            "Authorization": f"Bearer {HF_API_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {"inputs": question}
+        
         response = requests.post(
-            f"https://router.huggingface.co/hf-inference/{HF_MODEL_ID}",
-            headers={"Authorization": f"Bearer {HF_API_TOKEN}"},
-            json={"inputs": question},
-            timeout=100
+            url,
+            headers=headers,
+            json=payload,
+            timeout=30
         )
-
+        
+        # Check status codes first
+        if response.status_code == 401:
+            return "Authentication failed. Check your HF_API_TOKEN."
+        
         if response.status_code == 503:
-            return "Model is loading. Try again in 20 seconds."
-
-        data = response.json()
-
-        if isinstance(data, list) and "generated_text" in data[0]:
-            return data[0]["generated_text"]
-
-        if isinstance(data, dict) and "generated_text" in data:
-            return data["generated_text"]
-
+            return "Model is loading. Please try again in 20 seconds."
+        
+        if response.status_code == 500:
+            return "Hugging Face server error. Try again later."
+        
+        # Try to parse JSON
+        try:
+            data = response.json()
+        except:
+            # If JSON parsing fails, return the raw text for debugging
+            print(f"Raw response: {response.text[:500]}")
+            print(f"Status code: {response.status_code}")
+            return f"Error: Invalid response from API"
+        
+        # Handle list response
+        if isinstance(data, list) and len(data) > 0:
+            if "generated_text" in data[0]:
+                return data[0]["generated_text"]
+            return str(data[0])
+        
+        # Handle dict response
+        if isinstance(data, dict):
+            if "generated_text" in data:
+                return data["generated_text"]
+            # Check for error in response
+            if "error" in data:
+                return f"API Error: {data['error']}"
+            return str(data)
+        
         return str(data)
-
+    
+    except requests.exceptions.Timeout:
+        return "Request timed out. Model may be too slow."
+    except requests.exceptions.ConnectionError:
+        return "Connection error. Check your internet connection."
     except Exception as e:
-        return f"HF API Error: {str(e)}"
+        print(f"Exception in hf_infer: {str(e)}")
+        return f"Unexpected error: {str(e)}"
 
 
 # ===============================
