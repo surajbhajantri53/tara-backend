@@ -36,28 +36,22 @@ ssl._create_default_https_context = ssl._create_unverified_context
 # HUGGINGFACE API INFERENCE
 # ===============================
 def hf_infer(question: str):
-    """
-    Sends the question to HuggingFace Inference API.
-    Your model runs on HF servers, NOT Render.
-    """
     try:
         response = requests.post(
-            f"https://api-inference.huggingface.co/models/{HF_MODEL_ID}",
+            f"https://router.huggingface.co/hf-inference/{HF_MODEL_ID}",
             headers={"Authorization": f"Bearer {HF_API_TOKEN}"},
             json={"inputs": question},
             timeout=100
         )
 
         if response.status_code == 503:
-            return "Model is loading on HuggingFace. Try again in 20 seconds."
+            return "Model is loading. Try again in 20 seconds."
 
         data = response.json()
 
-        # Some HF models return structured list
         if isinstance(data, list) and "generated_text" in data[0]:
             return data[0]["generated_text"]
 
-        # Others return plain text
         if isinstance(data, dict) and "generated_text" in data:
             return data["generated_text"]
 
