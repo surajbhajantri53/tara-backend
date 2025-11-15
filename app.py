@@ -13,7 +13,8 @@ import urllib3
 # CONFIG
 # ===============================
 HF_MODEL_ID = "Surajsb/STS"
-HF_API_TOKEN = "YOUR_HF_API_KEY"   # <-- PUT TOKEN HERE
+HF_API_TOKEN = os.getenv("HF_API_TOKEN")
+   # <-- PUT TOKEN HERE
 
 AUDIO_DIR = "./audio_outputs"
 os.makedirs(AUDIO_DIR, exist_ok=True)
