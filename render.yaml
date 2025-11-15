@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: tara-backend
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --timeout 300 --workers 1 --bind 0.0.0.0:10000"
+    envVars:
+      HF_HUB_DISABLE_SYMLINKS_WARNING: "1"
+    autoDeploy: true

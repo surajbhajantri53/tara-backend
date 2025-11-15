@@ -1,0 +1,12 @@
+flask
+flask-cors
+transformers==4.39.3
+torch
+sentencepiece
+accelerate
+requests
+pyttsx3
+edge-tts
+SpeechRecognition
+pydub
+gunicorn
